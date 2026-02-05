@@ -9,6 +9,20 @@
 
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
+const noSlot = document.getElementById("noSlot");
+
+function snapNoToSlot(){
+  const slot = noSlot.getBoundingClientRect();
+  const row = document.querySelector(".buttons").getBoundingClientRect();
+  noBtn.style.left = `${slot.left - row.left}px`;
+  noBtn.style.top  = `${slot.top - row.top}px`;
+  noBtn.style.transform = "none";
+}
+
+window.addEventListener("load", () => {
+  snapNoToSlot();   // start perfectly aligned next to YES
+});
+
 
 const message = document.getElementById("message");
 const tease = document.getElementById("tease");

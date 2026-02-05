@@ -22,10 +22,16 @@
         <span class="highlight">Picanha Steakhouse</span>?
       </p>
 
-      <div class="buttons">
-        <button id="yesBtn" class="btn yes" type="button">Yes 💘</button>
-        <button id="noBtn" class="btn no" type="button">No 🙃</button>
-      </div>
+    <div class="buttons">
+      <button id="yesBtn" class="btn yes" type="button">Yes 💘</button>
+
+      <!-- invisible placeholder that keeps NO's starting spot in the flex row -->
+      <span id="noSlot" class="btn no" aria-hidden="true">No 🙃</span>
+
+      <!-- the real NO that moves -->
+      <button id="noBtn" class="btn no" type="button">No 🙃</button>
+    </div>
+
 
       <!-- Simple slideshow -->
       <div class="slideshow" aria-roledescription="carousel">

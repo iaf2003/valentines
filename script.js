@@ -1,19 +1,14 @@
 /* =========================================================
-   SCRIPT.JS (FULL)
-   FIXES YOUR EXACT PROBLEM: the NO button is showing up at (0,0)
-   because your CSS is hiding the SLOT but your JS is not reliably
-   positioning NO into the slot before the page paints.
-
-   THIS VERSION:
-   1) leaves NO visible always
-   2) snaps NO into the slot AFTER layout is stable (2 RAFs)
-   3) keeps NO inside the card area (so you actually SEE it)
-   4) then, when you get close, it runs around inside the card
+   script.js (FULL FILE)
+   - Typewriter headline
+   - Floaters + confetti + paint splats
+   - YES shows message + effects
+   - NO sits next to YES, but jumps away when your cursor gets close
+   - Slideshow with dots + autoplay (make sure image paths match /images/)
    ========================================================= */
 
-const noBtn = document.getElementById("noBtn");
-const noSlot = document.getElementById("noSlot");
 const yesBtn = document.getElementById("yesBtn");
+const noBtn = document.getElementById("noBtn");
 
 const message = document.getElementById("message");
 const tease = document.getElementById("tease");
@@ -21,6 +16,7 @@ const confetti = document.getElementById("confetti");
 const floaters = document.getElementById("floaters");
 const headline = document.getElementById("headline");
 
+/* ---------------- Customize text ---------------- */
 const HER_NAME = "Shayira";
 const PLAN = "Picanha Steakhouse";
 
@@ -102,19 +98,15 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON (runs inside the CARD so it stays visible)
+   NO BUTTON (UPDATED)
+   - Yes and No appear next to each other
+   - No is positioned inside the .buttons row (absolute)
+   - When cursor approaches, it jumps somewhere else in the row
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-let dodges = 0;
-let armed = false;
-let rafLock = false;
-
-const ARM_DISTANCE = 140;
-const SAFE_FROM_CURSOR = 240;
-const MIN_CURSOR_GAP = 260;
-const MIN_YES_GAP = 180;
-const ATTEMPTS = 200;
+const ARM_DISTANCE = 120; // distance in px before NO jumps
+const ATTEMPTS = 80;
 
 function dist(ax, ay, bx, by) {
   return Math.hypot(ax - bx, ay - by);
@@ -128,63 +120,42 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
-function forceMovableStyles() {
-  // IMPORTANT: keeps it visible and movable even if CSS is cached wrong
-  noBtn.style.position = "fixed";
-  noBtn.style.zIndex = "9999";
-  noBtn.style.display = "inline-flex";
-  noBtn.style.visibility = "visible";
-  noBtn.style.opacity = "1";
-  noBtn.style.pointerEvents = "auto";
-}
-
-function snapNoToSlot() {
-  const slotRect = noSlot.getBoundingClientRect();
-  noBtn.style.left = `${slotRect.left}px`;
-  noBtn.style.top = `${slotRect.top}px`;
-}
-
-function pickSpotInsideCard() {
-  const card = document.querySelector(".card");
-  const cardRect = card.getBoundingClientRect();
+function pickSpotInsideButtons() {
+  const buttons = document.querySelector(".buttons");
+  const area = buttons.getBoundingClientRect();
   const noRect = noBtn.getBoundingClientRect();
   const yesRect = yesBtn.getBoundingClientRect();
   const yesC = rectCenter(yesRect);
 
-  // keep NO inside the card with padding
-  const PAD = 14;
-  const minX = cardRect.left + PAD;
-  const minY = cardRect.top + PAD;
-  const maxX = cardRect.right - noRect.width - PAD;
-  const maxY = cardRect.bottom - noRect.height - PAD;
+  const PAD = 8;
 
-  let best = null;
+  // NO moves inside buttons row (px relative to the row)
+  const minX = PAD;
+  const maxX = area.width - noRect.width - PAD;
+  const minY = PAD;
+  const maxY = area.height - noRect.height - PAD;
+
+  let best = { x: maxX, y: (area.height - noRect.height) / 2 };
   let bestScore = -Infinity;
 
   for (let i = 0; i < ATTEMPTS; i++) {
     const x = minX + Math.random() * (maxX - minX);
     const y = minY + Math.random() * (maxY - minY);
 
-    const cx = x + noRect.width / 2;
-    const cy = y + noRect.height / 2;
+    const cx = area.left + x + noRect.width / 2;
+    const cy = area.top + y + noRect.height / 2;
 
     const dMouse = dist(cx, cy, lastMouse.x, lastMouse.y);
     const dYes = dist(cx, cy, yesC.x, yesC.y);
 
-    const safe = dMouse >= MIN_CURSOR_GAP && dYes >= MIN_YES_GAP;
-    const score = dMouse + dYes;
+    // prefer far from cursor and not too close to YES
+    const score = dMouse + dYes * 0.6;
 
-    if (safe && score > bestScore) {
-      best = { x, y };
+    if (score > bestScore) {
       bestScore = score;
-    }
-    if (!best && score > bestScore) {
       best = { x, y };
-      bestScore = score;
     }
   }
-
-  if (!best) return null;
 
   best.x = clamp(best.x, minX, maxX);
   best.y = clamp(best.y, minY, maxY);
@@ -192,103 +163,51 @@ function pickSpotInsideCard() {
   return best;
 }
 
-function setNoPosition(x, y) {
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
-}
+function moveNo() {
+  const spot = pickSpotInsideButtons();
 
-function runAway() {
-  dodges += 1;
+  noBtn.style.left = `${spot.x}px`;
+  noBtn.style.top = `${spot.y}px`;
 
-  const spot = pickSpotInsideCard();
-  if (spot) setNoPosition(spot.x, spot.y);
-
-  if (dodges === 2) tease.textContent = "Hehe… nope 🙈";
-  if (dodges === 5) tease.textContent = `Okay okay ${HER_NAME}… dinner at ${PLAN} is waiting 😌🥩`;
-  if (dodges >= 8) tease.textContent = "No is not an option today 💖";
-}
-
-function runAwaySoon() {
-  if (rafLock) return;
-  rafLock = true;
-  requestAnimationFrame(() => {
-    rafLock = false;
-    runAway();
-  });
-}
-
-function armIfClose() {
-  if (armed) return;
-
-  const r = noBtn.getBoundingClientRect();
-  const c = rectCenter(r);
-  const d = dist(c.x, c.y, lastMouse.x, lastMouse.y);
-
-  if (d <= ARM_DISTANCE) {
-    armed = true;
-    runAwaySoon();
-  }
+  // we're using exact pixels now
+  noBtn.style.transform = "none";
 }
 
 document.addEventListener("mousemove", (e) => {
   lastMouse = { x: e.clientX, y: e.clientY };
 
-  armIfClose();
-  if (!armed) return;
-
   const r = noBtn.getBoundingClientRect();
   const c = rectCenter(r);
 
-  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) < SAFE_FROM_CURSOR) {
-    runAwaySoon();
+  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) <= ARM_DISTANCE) {
+    moveNo();
   }
 });
 
 noBtn.addEventListener("mouseenter", (e) => {
   e.preventDefault();
-  armed = true;
-  runAwaySoon();
+  moveNo();
 });
+
 noBtn.addEventListener("mousedown", (e) => {
   e.preventDefault();
-  armed = true;
-  runAwaySoon();
+  moveNo();
 });
+
 noBtn.addEventListener("click", (e) => {
   e.preventDefault();
-  armed = true;
-  runAwaySoon();
+  moveNo();
 });
-noBtn.addEventListener(
-  "touchstart",
-  (e) => {
-    e.preventDefault();
-    armed = true;
-    runAwaySoon();
-  },
-  { passive: false }
-);
 
-/* THIS IS THE IMPORTANT PART:
-   Two requestAnimationFrame calls ensures layout is done
-   before we read noSlot's position */
-function initNoPosition() {
-  forceMovableStyles();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      snapNoToSlot();
-    });
-  });
-}
+// On load: place NO neatly on the right side of the buttons row
+window.addEventListener("load", () => {
+  const buttons = document.querySelector(".buttons");
+  const area = buttons.getBoundingClientRect();
+  const noRect = noBtn.getBoundingClientRect();
 
-window.addEventListener("load", initNoPosition);
-document.addEventListener("DOMContentLoaded", initNoPosition);
-
-window.addEventListener("resize", () => {
-  setTimeout(() => {
-    initNoPosition();
-    if (armed) runAwaySoon();
-  }, 80);
+  noBtn.style.left = `${area.width - noRect.width - 8}px`;
+  noBtn.style.top = `${(area.height - noRect.height) / 2}px`;
+  noBtn.style.transform = "none";
 });
 
 /* ---------------- YES click ---------------- */
@@ -301,3 +220,86 @@ yesBtn.addEventListener("click", () => {
   splatBurst();
   confettiBurst();
 });
+
+/* =========================================================
+   SLIDESHOW (FULL)
+   IMPORTANT: keep paths consistent with your HTML:
+   <img src="images/IMG_1057.jpeg" />
+   So the JS should also use "images/..."
+   ========================================================= */
+
+const slideImg = document.getElementById("slideImg");
+const prevSlide = document.getElementById("prevSlide");
+const nextSlide = document.getElementById("nextSlide");
+const slideDots = document.getElementById("slideDots");
+
+const slides = [
+  "images/IMG_1057.jpeg",
+  "images/IMG_1260.jpeg",
+  "images/IMG_4157.jpeg",
+  "images/IMG_2240.jpeg",
+  "images/IMG_3608.jpeg",
+  "images/IMG_0449.jpeg",
+];
+
+let current = 0;
+let slideTimer = null;
+
+function renderDots() {
+  slideDots.innerHTML = "";
+  slides.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.index = i;
+    if (i === current) b.classList.add("active");
+    b.addEventListener("click", () => {
+      goTo(i);
+      resetTimer();
+    });
+    slideDots.appendChild(b);
+  });
+}
+
+function goTo(i) {
+  current = (i + slides.length) % slides.length;
+  slideImg.src = slides[current];
+  const dots = slideDots.querySelectorAll("button");
+  dots.forEach((d) => d.classList.remove("active"));
+  if (dots[current]) dots[current].classList.add("active");
+}
+
+function next() {
+  goTo(current + 1);
+}
+
+function prev() {
+  goTo(current - 1);
+}
+
+function resetTimer() {
+  if (slideTimer) clearInterval(slideTimer);
+  slideTimer = setInterval(next, 4200);
+}
+
+prevSlide.addEventListener("click", () => {
+  prev();
+  resetTimer();
+});
+
+nextSlide.addEventListener("click", () => {
+  next();
+  resetTimer();
+});
+
+document.querySelector(".slideshow").addEventListener("mouseenter", () => {
+  if (slideTimer) clearInterval(slideTimer);
+});
+
+document.querySelector(".slideshow").addEventListener("mouseleave", () => {
+  resetTimer();
+});
+
+// init slideshow
+renderDots();
+goTo(0);
+resetTimer();

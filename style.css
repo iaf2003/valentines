@@ -72,6 +72,11 @@ h1{
   color:#c2185b;
 }
 
+/* =========================================================
+   BUTTONS (UPDATED)
+   Yes + No sit next to each other.
+   No is positioned inside the buttons row so JS can move it.
+   ========================================================= */
 .buttons{
   position:relative;
   display:flex;
@@ -108,28 +113,27 @@ h1{
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
 }
 
-/* =========================================================
-   ADD/REPLACE ONLY THIS PART IN style.css
-   (keep the rest of your CSS exactly the same)
-   ========================================================= */
-
-/* placeholder keeps spacing only, but is invisible */
-#noSlot{
-  visibility: hidden;
-  pointer-events: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* keep YES in normal flow */
+#yesBtn{
+  position:relative;
+  z-index:1;
 }
 
-/* the real NO button must be movable */
+/* NO starts next to YES but can move within the buttons row */
 #noBtn{
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 9999;
+  position:absolute;
+  left: calc(50% + 86px); /* initial position to the right of YES */
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index:2;
 }
 
+/* Disable styling (optional, looks nicer after YES click) */
+.btn:disabled{
+  cursor: default;
+  filter: grayscale(.1);
+  opacity: .9;
+}
 
 .tease{
   margin-top:14px;
@@ -258,29 +262,38 @@ h1{
   100%{ transform: translateY(-120vh); opacity:0; }
 }
 
-/* Simple slideshow styles */
+/* =========================================================
+   SLIDESHOW (UPDATED)
+   Show the WHOLE image (no cropping) and let height auto-size.
+   ========================================================= */
 .slideshow{
   margin:18px auto 6px;
-  max-width:560px;
+  width:100%;
+  max-width:640px;
   position:relative;
   display:flex;
   align-items:center;
   justify-content:center;
 }
+
 .slide-frame{
   width:100%;
-  max-height:320px;
+  height:auto; /* auto-size based on the image */
   overflow:hidden;
   border-radius:12px;
   border:1px solid rgba(0,0,0,0.06);
   box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
+
 .slide-frame img{
   width:100%;
-  height:100%;
-  object-fit:cover;
+  height:auto;        /* key: image controls height */
+  object-fit:contain; /* key: show whole picture */
   display:block;
+  background:#fff;    /* nice padding color if image doesn't fill */
 }
+
+/* arrows */
 .slide-btn{
   position:absolute;
   top:50%;
@@ -298,14 +311,18 @@ h1{
   justify-content:center;
   box-shadow:0 6px 18px rgba(0,0,0,0.08);
 }
+
 .slide-btn.prev{ left:8px; }
 .slide-btn.next{ right:8px; }
+
+/* dots */
 .slide-dots{
   margin-top:8px;
   display:flex;
   gap:8px;
   justify-content:center;
 }
+
 .slide-dots button{
   width:8px;
   height:8px;
@@ -314,4 +331,5 @@ h1{
   border:none;
   padding:0;
 }
+
 .slide-dots button.active{ background:#ec407a; }

@@ -1,3 +1,7 @@
+/* =========================================================
+   SCRIPT.JS (FULL)
+   ========================================================= */
+
 const noBtn = document.getElementById("noBtn");
 const noSlot = document.getElementById("noSlot");
 const yesBtn = document.getElementById("yesBtn");
@@ -89,10 +93,10 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON MODE
-   Starts next to YES (snapped to the hidden slot)
-   Only becomes evasive after the cursor gets near it once
-   Then it dodges aggressively and is basically impossible to click
+   NO BUTTON BEHAVIOR
+   - Starts in the "No" slot next to YES
+   - Only becomes evasive after you move the mouse near it ONCE
+   - Then it runs away and is very hard to click
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -101,11 +105,12 @@ let dodges = 0;
 let armed = false;
 let rafLock = false;
 
+// distances (tweak if you want)
 const PADDING = 16;
-const ARM_DISTANCE = 120;
-const SAFE_FROM_CURSOR = 260;
-const MIN_CURSOR_GAP = 340;
-const MIN_YES_GAP = 240;
+const ARM_DISTANCE = 140;      // how close the cursor must get to "activate" the prank
+const SAFE_FROM_CURSOR = 260;  // once activated, it runs if cursor comes within this radius
+const MIN_CURSOR_GAP = 340;    // when picking a new spot, stay far from cursor
+const MIN_YES_GAP = 240;       // also stay far from YES
 const ATTEMPTS = 180;
 
 function dist(ax, ay, bx, by) {
@@ -207,6 +212,13 @@ function armIfClose() {
   }
 }
 
+// IMPORTANT: make sure NO is actually movable (needs fixed)
+function ensureNoIsMovable() {
+  noBtn.style.position = "fixed";
+  noBtn.style.zIndex = "9999";
+  if (!noBtn.style.left || !noBtn.style.top) snapNoToSlot();
+}
+
 document.addEventListener("mousemove", (e) => {
   lastMouse = { x: e.clientX, y: e.clientY };
 
@@ -250,11 +262,13 @@ noBtn.addEventListener(
 );
 
 window.addEventListener("load", () => {
+  ensureNoIsMovable();
   snapNoToSlot();
 });
 
 window.addEventListener("resize", () => {
   setTimeout(() => {
+    ensureNoIsMovable();
     if (!armed) snapNoToSlot();
     else runAwaySoon();
   }, 80);

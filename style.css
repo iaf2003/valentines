@@ -108,22 +108,28 @@ h1{
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
 }
 
+/* =========================================================
+   ADD/REPLACE ONLY THIS PART IN style.css
+   (keep the rest of your CSS exactly the same)
+   ========================================================= */
+
 /* placeholder keeps spacing only, but is invisible */
 #noSlot{
-  visibility: hidden;     /* keeps the space, but you can't see it */
+  visibility: hidden;
   pointer-events: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-/* real NO is a screen runner */
+/* the real NO button must be movable */
 #noBtn{
   position: fixed;
   left: 0;
   top: 0;
   z-index: 9999;
 }
+
 
 .tease{
   margin-top:14px;

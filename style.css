@@ -81,6 +81,7 @@ h1{
   height:74px;
 }
 
+
 .btn{
   border:none;
   cursor:pointer;
@@ -98,7 +99,11 @@ h1{
   color:white;
   box-shadow: 0 14px 26px rgba(236, 64, 122, .25);
   min-width: 140px;
+  position: relative;
+  z-index: 2;
 }
+
+
 
 .no{
   background:#fff;
@@ -106,8 +111,13 @@ h1{
   border:1px solid rgba(0,0,0,.10);
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
   min-width: 140px;
-  position:relative;
+
+  position: fixed; /* key */
+  left: 0;
+  top: 0;
+  z-index: 9999;
 }
+
 
 .tease{
   margin-top:14px;

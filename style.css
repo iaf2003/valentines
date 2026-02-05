@@ -10,9 +10,9 @@
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
 }
 
-*{ box-sizing: border-box; }
+*{ box-sizing:border-box; }
 
-body {
+body{
   margin:0;
   min-height:100vh;
   font-family:var(--font);
@@ -24,17 +24,11 @@ body {
   display:grid;
   place-items:center;
   overflow:hidden;
-  text-align: center;
-  padding-top: 60px;
 }
 
-.container {
-  width: min(720px, 92vw);
-  background: white;
-  border-radius: 10px;
-  padding: 18px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  margin: auto;
+.container{
+  width:min(720px, 92vw);
+  padding:18px;
 }
 
 .card{
@@ -64,7 +58,6 @@ h1{
   font-size: clamp(28px, 3.6vw, 44px);
   line-height:1.05;
   letter-spacing:-0.02em;
-  color: #d43855;
 }
 
 .subhead{
@@ -84,8 +77,9 @@ h1{
   display:flex;
   justify-content:center;
   gap:14px;
-  margin-top: 10px;
+  margin-top:10px;
   height:74px;
+  align-items:center;
 }
 
 .btn{
@@ -116,19 +110,23 @@ h1{
   position:relative;
 }
 
+/* placeholder is just for spacing */
+#noSlot{
+  pointer-events:none;
+}
+
+/* real NO moves around the screen */
+#noBtn{
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+}
+
 .tease{
   margin-top:14px;
   font-size:12px;
   opacity:.72;
-}
-
-button {
-  padding: 14px 22px;
-  margin: 12px;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  cursor: pointer;
 }
 
 .message{
@@ -139,12 +137,7 @@ button {
   border:1px solid rgba(0,0,0,.06);
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
   text-align:left;
-  max-width: 560px;
-}
-
-#yesBtn {
-  background: #ec407a;
-  color: white;
+  max-width:560px;
 }
 
 .message-title{
@@ -154,22 +147,9 @@ button {
   margin-bottom:6px;
 }
 
-#noBtn {
-  background: #9e9e9e;
-  color: white;
-}
-
 .message-body{
   font-size:16px;
   line-height:1.35;
-}
-
-.hidden { display:none; }
-
-.notice{
-  font-size: 22px;
-  color: #d81b60;
-  margin-top: 20px;
 }
 
 .mini{
@@ -193,6 +173,8 @@ button {
   margin:0;
   padding-left:18px;
 }
+
+.hidden{ display:none; }
 
 /* Typewriter cursor */
 .type::after{
@@ -256,7 +238,6 @@ button {
   animation: drift 9s linear infinite;
   will-change: transform, opacity;
 }
-
 @keyframes drift{
   0%{ transform: translateY(0); opacity:0; }
   10%{ opacity:1; }

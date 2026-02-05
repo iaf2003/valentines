@@ -111,12 +111,22 @@ h1{
   border:1px solid rgba(0,0,0,.10);
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
   min-width: 140px;
+  position: relative; /* stays in the row by default */
+}
 
-  position: fixed; /* key */
+/* placeholder stays visible in the row */
+.no.slot{
+  opacity: 1;
+}
+
+/* ONLY the real moving button is fixed */
+#noBtn{
+  position: fixed;
   left: 0;
   top: 0;
   z-index: 9999;
 }
+
 
 
 .tease{

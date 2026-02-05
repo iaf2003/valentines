@@ -1,8 +1,3 @@
-body {
-  background: #ffe6eb;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  padding-top: 60px;
 :root{
   --bg1:#ffe6eb;
   --bg2:#fff3f7;
@@ -12,19 +7,12 @@ body {
   --accent2:#ff77a8;
   --shadow: 0 16px 46px rgba(0,0,0,.14);
   --radius: 18px;
-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
 }
 
-.container {
-  background: white;
-  border-radius: 10px;
-  padding: 30px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  max-width: 440px;
-  margin: auto;
-*{ box-sizing:border-box; }
+*{ box-sizing: border-box; }
 
-body{
+body {
   margin:0;
   min-height:100vh;
   font-family:var(--font);
@@ -36,11 +24,17 @@ body{
   display:grid;
   place-items:center;
   overflow:hidden;
+  text-align: center;
+  padding-top: 60px;
 }
 
-.container{
-  width:min(720px, 92vw);
-  padding:18px;
+.container {
+  width: min(720px, 92vw);
+  background: white;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  margin: auto;
 }
 
 .card{
@@ -70,6 +64,7 @@ h1{
   font-size: clamp(28px, 3.6vw, 44px);
   line-height:1.05;
   letter-spacing:-0.02em;
+  color: #d43855;
 }
 
 .subhead{
@@ -121,8 +116,6 @@ h1{
   position:relative;
 }
 
-h1 {
-  color: #d43855;
 .tease{
   margin-top:14px;
   font-size:12px;
@@ -136,6 +129,8 @@ button {
   border-radius: 8px;
   font-size: 18px;
   cursor: pointer;
+}
+
 .message{
   margin:18px auto 0;
   padding:16px 14px;
@@ -150,6 +145,8 @@ button {
 #yesBtn {
   background: #ec407a;
   color: white;
+}
+
 .message-title{
   font-size:20px;
   font-weight:800;
@@ -160,16 +157,21 @@ button {
 #noBtn {
   background: #9e9e9e;
   color: white;
+}
+
 .message-body{
   font-size:16px;
   line-height:1.35;
 }
 
-.hidden {
-  display: none;
+.hidden { display:none; }
+
+.notice{
   font-size: 22px;
   color: #d81b60;
   margin-top: 20px;
+}
+
 .mini{
   margin-top:8px;
   opacity:.78;
@@ -191,8 +193,6 @@ button {
   margin:0;
   padding-left:18px;
 }
-
-.hidden{ display:none; }
 
 /* Typewriter cursor */
 .type::after{
@@ -256,6 +256,7 @@ button {
   animation: drift 9s linear infinite;
   will-change: transform, opacity;
 }
+
 @keyframes drift{
   0%{ transform: translateY(0); opacity:0; }
   10%{ opacity:1; }

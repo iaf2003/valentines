@@ -1,6 +1,6 @@
 const noBtn = document.getElementById("noBtn");
-const yesBtn = document.getElementById("yesBtn");
 const noSlot = document.getElementById("noSlot");
+const yesBtn = document.getElementById("yesBtn");
 
 const message = document.getElementById("message");
 const tease = document.getElementById("tease");
@@ -11,15 +11,7 @@ const headline = document.getElementById("headline");
 const HER_NAME = "Shayira";
 const PLAN = "Picanha Steakhouse";
 
-let dodges = 0;
-let noReady = false;
-let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-
-const padding = 18;
-const dodgeRadius = 300;
-const yesAvoidRadius = 220;
-const triesPerDodge = 120;
-
+/* -------- typewriter -------- */
 function typewriter(text, speed = 42){
   headline.textContent = "";
   let i = 0;
@@ -31,6 +23,7 @@ function typewriter(text, speed = 42){
 }
 typewriter(`${HER_NAME}, will you be my Valentine?`);
 
+/* -------- floaters -------- */
 function seedFloaters(){
   const icons = ["💗","💘","💖","💕","🐱","🎨","🖌️","✨"];
   for(let i=0;i<22;i++){
@@ -47,6 +40,7 @@ function seedFloaters(){
 }
 seedFloaters();
 
+/* -------- confetti -------- */
 function confettiBurst(){
   confetti.innerHTML = "";
   const colors = ["#ec407a","#ff77a8","#ffd1e1","#ffffff","#c2185b","#ffe0eb"];
@@ -65,6 +59,7 @@ function confettiBurst(){
   setTimeout(() => (confetti.innerHTML = ""), 4200);
 }
 
+/* -------- splat burst -------- */
 function splatBurst(){
   const rect = yesBtn.getBoundingClientRect();
   const cx = rect.left + rect.width/2;
@@ -92,62 +87,71 @@ function splatBurst(){
   }
 }
 
-function centerOfRect(r){
-  return { x: r.left + r.width/2, y: r.top + r.height/2 };
-}
-function dist(ax, ay, bx, by){
-  return Math.hypot(ax - bx, ay - by);
-}
-function placeNoAt(x, y){
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
-}
+/* -------- NO runner logic -------- */
+let lastMouse = { x: window.innerWidth/2, y: window.innerHeight/2 };
+let dodges = 0;
+
+const padding = 18;
+const avoidCursor = 320;     // how far away NO must be from cursor
+const avoidYes = 220;        // how far away NO must be from YES
+const attempts = 140;        // random tries per move
+
+function dist(ax, ay, bx, by){ return Math.hypot(ax - bx, ay - by); }
+
+function rectCenter(r){ return { x: r.left + r.width/2, y: r.top + r.height/2 }; }
+
 function snapNoToSlot(){
   const slotRect = noSlot.getBoundingClientRect();
-  placeNoAt(slotRect.left, slotRect.top);
-}
-function randomSpot(noRect){
-  const maxX = window.innerWidth - noRect.width - padding;
-  const maxY = window.innerHeight - noRect.height - padding;
-
-  const x = Math.random() * (maxX - padding) + padding;
-  const y = Math.random() * (maxY - padding) + padding;
-  return { x, y };
+  noBtn.style.left = `${slotRect.left}px`;
+  noBtn.style.top = `${slotRect.top}px`;
 }
 
-function superDodge(){
-  dodges += 1;
-
+function pickSafeSpot(){
   const noRect = noBtn.getBoundingClientRect();
   const yesRect = yesBtn.getBoundingClientRect();
-  const yesC = centerOfRect(yesRect);
+  const yesC = rectCenter(yesRect);
+
+  const maxX = window.innerWidth - noRect.width - padding;
+  const maxY = window.innerHeight - noRect.height - padding;
 
   let best = null;
   let bestScore = -Infinity;
 
-  for(let i=0;i<triesPerDodge;i++){
-    const spot = randomSpot(noRect);
+  for(let i=0;i<attempts;i++){
+    const x = padding + Math.random() * (maxX - padding);
+    const y = padding + Math.random() * (maxY - padding);
 
-    const noCX = spot.x + noRect.width/2;
-    const noCY = spot.y + noRect.height/2;
+    const cx = x + noRect.width/2;
+    const cy = y + noRect.height/2;
 
-    const dMouse = dist(noCX, noCY, lastMouse.x, lastMouse.y);
-    const dYes = dist(noCX, noCY, yesC.x, yesC.y);
+    const dMouse = dist(cx, cy, lastMouse.x, lastMouse.y);
+    const dYes = dist(cx, cy, yesC.x, yesC.y);
 
-    const safe = (dMouse > dodgeRadius) && (dYes > yesAvoidRadius);
+    const safe = (dMouse >= avoidCursor) && (dYes >= avoidYes);
     const score = dMouse + dYes;
 
     if(safe && score > bestScore){
-      best = spot;
+      best = { x, y };
       bestScore = score;
     }
+
     if(!best && score > bestScore){
-      best = spot;
+      best = { x, y };
       bestScore = score;
     }
   }
 
-  if(best) placeNoAt(best.x, best.y);
+  return best;
+}
+
+function moveNo(){
+  dodges += 1;
+
+  const spot = pickSafeSpot();
+  if(spot){
+    noBtn.style.left = `${spot.x}px`;
+    noBtn.style.top = `${spot.y}px`;
+  }
 
   if(dodges === 3){
     tease.textContent = "Hehe… it’s shy 🙈 try the other one";
@@ -160,29 +164,30 @@ function superDodge(){
 
 document.addEventListener("mousemove", (e) => {
   lastMouse = { x: e.clientX, y: e.clientY };
-  if(!noReady) return;
+  const r = noBtn.getBoundingClientRect();
+  const c = rectCenter(r);
 
-  const rect = noBtn.getBoundingClientRect();
-  const c = centerOfRect(rect);
-
-  if(dist(c.x, c.y, lastMouse.x, lastMouse.y) < dodgeRadius){
-    superDodge();
+  if(dist(c.x, c.y, lastMouse.x, lastMouse.y) < avoidCursor){
+    moveNo();
   }
 });
 
+noBtn.addEventListener("mouseenter", (e) => { e.preventDefault(); moveNo(); });
+noBtn.addEventListener("mousedown", (e) => { e.preventDefault(); moveNo(); });
+noBtn.addEventListener("click", (e) => { e.preventDefault(); moveNo(); });
+noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); moveNo(); }, { passive:false });
+
 window.addEventListener("load", () => {
   snapNoToSlot();
-  noReady = true;
-  setTimeout(() => superDodge(), 120);
+  // move once after paint to prove it works
+  setTimeout(moveNo, 150);
 });
 
 window.addEventListener("resize", () => {
-  if(!noReady) return;
-  setTimeout(() => superDodge(), 50);
+  setTimeout(moveNo, 80);
 });
 
-noBtn.addEventListener("mouseenter", (e) => { e.preventDefault(); superDodge(); });
-
+/* -------- YES click -------- */
 yesBtn.addEventListener("click", () => {
   message.classList.remove("hidden");
   yesBtn.disabled = true;
@@ -192,3 +197,9 @@ yesBtn.addEventListener("click", () => {
   splatBurst();
   confettiBurst();
 });
+/* -------- RESET position on reload -------- */
+window.addEventListener("beforeunload", () => {
+  noBtn.style.left = "";
+  noBtn.style.top = "";
+});   
+/* -------- END -------- */

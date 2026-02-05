@@ -12,7 +12,7 @@
   <div class="confetti" id="confetti" aria-hidden="true"></div>
 
   <main class="container">
-    <div class="card">
+    <section class="card">
       <div class="badge">For Shayira 🎨🐱</div>
 
       <h1 id="headline" class="type"></h1>
@@ -22,11 +22,13 @@
         <span class="highlight">Picanha Steakhouse</span>?
       </p>
 
-      <div class="buttons">
+      <div class="buttons" id="buttonRow">
         <button id="yesBtn" class="btn yes" type="button">Yes 💘</button>
 
+        <!-- placeholder keeps the row spacing so YES doesn't jump -->
         <span id="noSlot" class="btn no slot" aria-hidden="true">No 🙃</span>
 
+        <!-- real NO button (moves all over the screen) -->
         <button id="noBtn" class="btn no" type="button">No 🙃</button>
       </div>
 
@@ -48,7 +50,7 @@
       </div>
 
       <div id="tease" class="tease">Click the button that actually means yes 💖</div>
-    </div>
+    </section>
   </main>
 
   <script src="script.js"></script>

@@ -108,12 +108,16 @@ h1{
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
 }
 
-/* placeholder keeps spacing only */
+/* placeholder keeps spacing only, but is invisible */
 #noSlot{
-  pointer-events:none;
+  visibility: hidden;     /* keeps the space, but you can't see it */
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* real NO is a screen-runner */
+/* real NO is a screen runner */
 #noBtn{
   position: fixed;
   left: 0;

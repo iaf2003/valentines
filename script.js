@@ -1,3 +1,5 @@
+console.log("script.js loaded ✅");
+
 const noBtn = document.getElementById("noBtn");
 const noSlot = document.getElementById("noSlot");
 const yesBtn = document.getElementById("yesBtn");
@@ -10,6 +12,10 @@ const headline = document.getElementById("headline");
 
 const HER_NAME = "Shayira";
 const PLAN = "Picanha Steakhouse";
+
+if (!noBtn || !noSlot || !yesBtn) {
+  console.error("Missing #noBtn, #noSlot, or #yesBtn. Check your index.html IDs.");
+}
 
 /* ---------------- Typewriter ---------------- */
 function typewriter(text, speed = 42) {
@@ -89,22 +95,17 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON "CAN'T CLICK ME" MODE
-   - Starts next to YES (snaps to #noSlot)
-   - Moves anywhere on screen
-   - Will NOT appear close to cursor
-   - Will NOT appear close to YES
+   NO BUTTON RUNNER
    ========================================================= */
 
-let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 let dodges = 0;
+let lastPointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-// tweak these:
-const PADDING = 16;       // keep away from screen edges
-const SAFE_FROM_CURSOR = 240; // if cursor gets within this px, NO runs
-const MIN_CURSOR_GAP = 320;   // when choosing a new spot, require at least this distance
-const MIN_YES_GAP = 220;      // keep away from YES
-const ATTEMPTS = 160;         // more attempts = smarter placements
+const PADDING = 16;
+const TRIGGER_RADIUS = 230;     // when cursor gets this close, it runs
+const MIN_CURSOR_GAP = 360;     // new spot must be at least this far from cursor
+const MIN_YES_GAP = 240;        // new spot must be this far from YES button
+const ATTEMPTS = 220;           // higher = smarter placements
 
 function dist(ax, ay, bx, by) {
   return Math.hypot(ax - bx, ay - by);
@@ -115,14 +116,15 @@ function rectCenter(r) {
 }
 
 function snapNoToSlot() {
-  const slotRect = noSlot.getBoundingClientRect();
-  noBtn.style.left = `${slotRect.left}px`;
-  noBtn.style.top = `${slotRect.top}px`;
+  const slot = noSlot.getBoundingClientRect();
+  noBtn.style.left = `${slot.left}px`;
+  noBtn.style.top = `${slot.top}px`;
 }
 
-function pickSpot() {
+function pickBestSpot() {
   const noRect = noBtn.getBoundingClientRect();
   const yesRect = yesBtn.getBoundingClientRect();
+
   const yesC = rectCenter(yesRect);
 
   const maxX = window.innerWidth - noRect.width - PADDING;
@@ -138,7 +140,7 @@ function pickSpot() {
     const cx = x + noRect.width / 2;
     const cy = y + noRect.height / 2;
 
-    const dMouse = dist(cx, cy, lastMouse.x, lastMouse.y);
+    const dMouse = dist(cx, cy, lastPointer.x, lastPointer.y);
     const dYes = dist(cx, cy, yesC.x, yesC.y);
 
     const safe = dMouse >= MIN_CURSOR_GAP && dYes >= MIN_YES_GAP;
@@ -149,7 +151,6 @@ function pickSpot() {
       bestScore = score;
     }
 
-    // fallback: if none are perfectly safe, still pick the farthest
     if (!best && score > bestScore) {
       best = { x, y };
       bestScore = score;
@@ -162,7 +163,7 @@ function pickSpot() {
 function runAway() {
   dodges += 1;
 
-  const spot = pickSpot();
+  const spot = pickBestSpot();
   if (spot) {
     noBtn.style.left = `${spot.x}px`;
     noBtn.style.top = `${spot.y}px`;
@@ -173,35 +174,45 @@ function runAway() {
   if (dodges >= 9) tease.textContent = "No is not an option today 💖";
 }
 
-// Track cursor and trigger flee when close
-document.addEventListener("mousemove", (e) => {
-  lastMouse = { x: e.clientX, y: e.clientY };
+/* Track pointer (mouse + trackpad) */
+window.addEventListener("pointermove", (e) => {
+  lastPointer = { x: e.clientX, y: e.clientY };
+});
 
+/* Always check proximity (this is the key improvement) */
+function tick() {
   const r = noBtn.getBoundingClientRect();
   const c = rectCenter(r);
 
-  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) < SAFE_FROM_CURSOR) {
+  if (dist(c.x, c.y, lastPointer.x, lastPointer.y) < TRIGGER_RADIUS) {
     runAway();
-  }
-});
 
-// Extra protection: if they try to click/tap it anyway, it runs
-noBtn.addEventListener("mouseenter", (e) => { e.preventDefault(); runAway(); });
-noBtn.addEventListener("mousedown", (e) => { e.preventDefault(); runAway(); });
+    // extra safety: if it still landed close, run again immediately
+    const r2 = noBtn.getBoundingClientRect();
+    const c2 = rectCenter(r2);
+    if (dist(c2.x, c2.y, lastPointer.x, lastPointer.y) < TRIGGER_RADIUS) {
+      runAway();
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+noBtn.addEventListener("pointerenter", (e) => { e.preventDefault(); runAway(); });
+noBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); runAway(); });
 noBtn.addEventListener("click", (e) => { e.preventDefault(); runAway(); });
-noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); runAway(); }, { passive: false });
 
 window.addEventListener("load", () => {
   snapNoToSlot();
-  // tiny delay so it positions correctly first, then becomes evasive
-  setTimeout(() => {
-    // if cursor is already near the buttons, make it flee immediately
-    runAway();
-  }, 120);
+
+  // start the runner loop
+  requestAnimationFrame(tick);
+
+  // if your pointer is already near the buttons, flee once right away
+  setTimeout(runAway, 120);
 });
 
 window.addEventListener("resize", () => {
-  // on resize, just pick a new safe spot
   setTimeout(runAway, 80);
 });
 

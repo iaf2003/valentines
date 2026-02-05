@@ -301,3 +301,75 @@ yesBtn.addEventListener("click", () => {
   splatBurst();
   confettiBurst();
 });
+
+/* ---------------- Simple slideshow ---------------- */
+const slideImg = document.getElementById("slideImg");
+const prevSlide = document.getElementById("prevSlide");
+const nextSlide = document.getElementById("nextSlide");
+const slideDots = document.getElementById("slideDots");
+
+const slides = [
+  "IMG_1057.jpeg",
+  "IMG_1260.jpeg",
+  "IMG_4157.jpeg",
+  "IMG_2240.jpeg",
+  "IMG_3608.jpeg",
+  "IMG_0449.jpeg",
+];
+let current = 0;
+let slideTimer = null;
+
+function renderDots() {
+  slideDots.innerHTML = "";
+  slides.forEach((_, i) => {
+    const b = document.createElement("button");
+    b.dataset.index = i;
+    if (i === current) b.classList.add("active");
+    b.addEventListener("click", () => {
+      goTo(i);
+      resetTimer();
+    });
+    slideDots.appendChild(b);
+  });
+}
+
+function goTo(i) {
+  current = (i + slides.length) % slides.length;
+  slideImg.src = slides[current];
+  const dots = slideDots.querySelectorAll("button");
+  dots.forEach((d) => d.classList.remove("active"));
+  if (dots[current]) dots[current].classList.add("active");
+}
+
+function next() {
+  goTo(current + 1);
+}
+function prev() {
+  goTo(current - 1);
+}
+
+function resetTimer() {
+  if (slideTimer) clearInterval(slideTimer);
+  slideTimer = setInterval(next, 4200);
+}
+
+prevSlide.addEventListener("click", () => {
+  prev();
+  resetTimer();
+});
+nextSlide.addEventListener("click", () => {
+  next();
+  resetTimer();
+});
+
+document.querySelector(".slideshow").addEventListener("mouseenter", () => {
+  if (slideTimer) clearInterval(slideTimer);
+});
+document.querySelector(".slideshow").addEventListener("mouseleave", () => {
+  resetTimer();
+});
+
+// init
+renderDots();
+goTo(0);
+resetTimer();

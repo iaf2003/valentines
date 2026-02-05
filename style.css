@@ -21,19 +21,14 @@ body{
     radial-gradient(1200px 800px at 20% 10%, #ffd1e1 0%, transparent 60%),
     radial-gradient(900px 700px at 80% 20%, #ffe2ee 0%, transparent 55%),
     linear-gradient(160deg, var(--bg1), var(--bg2));
+  display:grid;
+  place-items:center;
 
-  /* ✅ allow scrolling */
+  /* ✅ allow scroll in Chrome */
   overflow-x:hidden;
   overflow-y:auto;
-
-  /* ✅ still keeps it centered nicely, but doesn't lock the page height */
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-
-  /* gives space at top/bottom when you scroll */
-  padding:28px 0;
 }
+
 
 
 .container{

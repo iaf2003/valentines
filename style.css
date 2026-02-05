@@ -120,13 +120,21 @@ h1{
 }
 
 /* NO starts next to YES but can move within the buttons row */
+/* placeholder keeps spacing but is invisible */
+#noSlot{
+  visibility:hidden;
+  pointer-events:none;
+}
+
+/* real NO starts exactly where the slot is */
 #noBtn{
   position:absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(14px, -50%); /* push it to the right of YES */
+  left:0;
+  top:0;
+  transform:none;
   z-index:2;
 }
+
 
 /* Disable styling (optional, looks nicer after YES click) */
 .btn:disabled{

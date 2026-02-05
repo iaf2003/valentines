@@ -10,6 +10,8 @@
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
 const noSlot = document.getElementById("noSlot");
+let noHasMoved = false;
+
 
 function snapNoToSlot(){
   const slot = noSlot.getBoundingClientRect();

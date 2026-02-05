@@ -1,5 +1,7 @@
 /* =========================================================
    SCRIPT.JS (FULL)
+   NO IS NEVER HIDDEN.
+   It starts next to YES, then runs when you get close.
    ========================================================= */
 
 const noBtn = document.getElementById("noBtn");
@@ -93,24 +95,19 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON BEHAVIOR
-   - Starts in the "No" slot next to YES
-   - Only becomes evasive after you move the mouse near it ONCE
-   - Then it runs away and is very hard to click
+   NO BUTTON
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 let dodges = 0;
-
 let armed = false;
 let rafLock = false;
 
-// distances (tweak if you want)
 const PADDING = 16;
-const ARM_DISTANCE = 140;      // how close the cursor must get to "activate" the prank
-const SAFE_FROM_CURSOR = 260;  // once activated, it runs if cursor comes within this radius
-const MIN_CURSOR_GAP = 340;    // when picking a new spot, stay far from cursor
-const MIN_YES_GAP = 240;       // also stay far from YES
+const ARM_DISTANCE = 140;      // activates when cursor gets this close
+const SAFE_FROM_CURSOR = 260;  // once activated, runs if cursor comes within this radius
+const MIN_CURSOR_GAP = 340;    // new spot must be far from cursor
+const MIN_YES_GAP = 240;       // new spot must be far from YES
 const ATTEMPTS = 180;
 
 function dist(ax, ay, bx, by) {
@@ -159,7 +156,6 @@ function pickSpot() {
       best = { x, y };
       bestScore = score;
     }
-
     if (!best && score > bestScore) {
       best = { x, y };
       bestScore = score;
@@ -212,11 +208,10 @@ function armIfClose() {
   }
 }
 
-// IMPORTANT: make sure NO is actually movable (needs fixed)
-function ensureNoIsMovable() {
+/* Make sure CSS can move it even if style.css didn't load */
+function forceMovableStyles() {
   noBtn.style.position = "fixed";
   noBtn.style.zIndex = "9999";
-  if (!noBtn.style.left || !noBtn.style.top) snapNoToSlot();
 }
 
 document.addEventListener("mousemove", (e) => {
@@ -233,24 +228,22 @@ document.addEventListener("mousemove", (e) => {
   }
 });
 
+/* if they get on it at all, it runs */
 noBtn.addEventListener("mouseenter", (e) => {
   e.preventDefault();
   armed = true;
   runAwaySoon();
 });
-
 noBtn.addEventListener("mousedown", (e) => {
   e.preventDefault();
   armed = true;
   runAwaySoon();
 });
-
 noBtn.addEventListener("click", (e) => {
   e.preventDefault();
   armed = true;
   runAwaySoon();
 });
-
 noBtn.addEventListener(
   "touchstart",
   (e) => {
@@ -261,14 +254,21 @@ noBtn.addEventListener(
   { passive: false }
 );
 
+/* IMPORTANT: run after layout is ready */
 window.addEventListener("load", () => {
-  ensureNoIsMovable();
+  forceMovableStyles();
+  snapNoToSlot();
+});
+
+/* if you use a cache, DOMContentLoaded helps too */
+document.addEventListener("DOMContentLoaded", () => {
+  forceMovableStyles();
   snapNoToSlot();
 });
 
 window.addEventListener("resize", () => {
   setTimeout(() => {
-    ensureNoIsMovable();
+    forceMovableStyles();
     if (!armed) snapNoToSlot();
     else runAwaySoon();
   }, 80);

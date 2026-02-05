@@ -114,18 +114,18 @@ h1{
   position: relative; /* stays in the row by default */
 }
 
-/* placeholder stays visible in the row */
-.no.slot{
-  opacity: 1;
+/* placeholder is just for layout, never clickable */
+#noSlot{
+  pointer-events: none;
 }
 
-/* ONLY the real moving button is fixed */
+
 #noBtn{
   position: fixed;
-  left: 0;
-  top: 0;
   z-index: 9999;
+  pointer-events: auto;
 }
+
 
 
 

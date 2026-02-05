@@ -96,13 +96,50 @@ function splatBurst() {
   }
 }
 
-// ===== NO button: make it basically impossible to click =====
-const padding = 18;       // keep away from edges
-const dodgeRadius = 220;  // how close cursor can get before it teleports away
-const triesPerDodge = 22; // number of teleports to find a safe spot
+// ===== NO button: ultra dodge =====
+const padding = 18;            // keep away from edges
+const dodgeRadius = 280;       // keep far from cursor
+const yesAvoidRadius = 220;    // also keep away from YES
+const triesPerDodge = 80;      // try many times for a safe spot
+let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
+}
+
+function centerOf(rect) {
+  return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
+function dist(ax, ay, bx, by) {
+  return Math.hypot(ax - bx, ay - by);
+}
+
+function randomSpot(rect) {
+  const maxX = window.innerWidth - rect.width - padding;
+  const maxY = window.innerHeight - rect.height - padding;
+
+  const x = Math.random() * (maxX - padding) + padding;
+  const y = Math.random() * (maxY - padding) + padding;
+  return { x, y };
+}
+
+function isSpotSafe(spot, noRect, mouse, yesCenter) {
+  const noCenterX = spot.x + noRect.width / 2;
+  const noCenterY = spot.y + noRect.height / 2;
+
+  // far from cursor
+  const farFromMouse = dist(noCenterX, noCenterY, mouse.x, mouse.y) > dodgeRadius;
+
+  // far from YES
+  const farFromYes = dist(noCenterX, noCenterY, yesCenter.x, yesCenter.y) > yesAvoidRadius;
+
+  return farFromMouse && farFromYes;
+}
+
+function placeNoAt(x, y) {
+  noBtn.style.left = `${x}px`;
+  noBtn.style.top = `${y}px`;
 }
 
 function placeNoNearYes() {
@@ -115,42 +152,47 @@ function placeNoNearYes() {
   x = clamp(x, padding, window.innerWidth - noRect.width - padding);
   y = clamp(y, padding, window.innerHeight - noRect.height - padding);
 
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
+  placeNoAt(x, y);
 }
 
-function placeNoRandom() {
-  const rect = noBtn.getBoundingClientRect();
-
-  const maxX = window.innerWidth - rect.width - padding;
-  const maxY = window.innerHeight - rect.height - padding;
-
-  const x = Math.random() * (maxX - padding) + padding;
-  const y = Math.random() * (maxY - padding) + padding;
-
-  noBtn.style.left = `${x}px`;
-  noBtn.style.top = `${y}px`;
-}
-
-function tooClose(e) {
-  const rect = noBtn.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-
-  const dx = e.clientX - cx;
-  const dy = e.clientY - cy;
-
-  return Math.hypot(dx, dy) < dodgeRadius;
-}
-
-function superDodge(e) {
+function superDodge() {
   dodges += 1;
 
-  // Teleport multiple times so the cursor doesn't "land" on it
+  const noRect = noBtn.getBoundingClientRect();
+  const yesRect = yesBtn.getBoundingClientRect();
+  const yesC = centerOf(yesRect);
+
+  // best candidate search
+  let best = null;
+  let bestScore = -Infinity;
+
   for (let i = 0; i < triesPerDodge; i += 1) {
-    placeNoRandom();
-    if (!tooClose(e)) break;
+    const spot = randomSpot(noRect);
+
+    const noCX = spot.x + noRect.width / 2;
+    const noCY = spot.y + noRect.height / 2;
+
+    // score by distance from mouse and YES
+    const dMouse = dist(noCX, noCY, lastMouse.x, lastMouse.y);
+    const dYes = dist(noCX, noCY, yesC.x, yesC.y);
+    const score = dMouse + dYes;
+
+    if (isSpotSafe(spot, noRect, lastMouse, yesC)) {
+      // first safe is great, but keep looking for even better
+      if (score > bestScore) {
+        best = spot;
+        bestScore = score;
+      }
+    } else {
+      // still keep a fallback “best effort”
+      if (!best && score > bestScore) {
+        best = spot;
+        bestScore = score;
+      }
+    }
   }
+
+  if (best) placeNoAt(best.x, best.y);
 
   if (dodges === 3) {
     tease.textContent = "Hehe… it’s shy 🙈 try the other one";
@@ -161,38 +203,52 @@ function superDodge(e) {
   }
 }
 
+// Track mouse continuously so dodges always use current cursor location
+document.addEventListener("mousemove", (e) => {
+  lastMouse = { x: e.clientX, y: e.clientY };
+  if (!noReady) return;
+
+  // if cursor gets within radius of NO, dodge immediately
+  const rect = noBtn.getBoundingClientRect();
+  const c = centerOf(rect);
+  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) < dodgeRadius) {
+    superDodge();
+  }
+});
+
 // Start NO beside YES, then enable dodging
 window.addEventListener("load", () => {
   placeNoNearYes();
   noReady = true;
+
+  // first dodge to get it away from wherever the cursor is on load
+  superDodge();
 });
 
 // Keep NO on-screen if the window changes
 window.addEventListener("resize", () => {
-  placeNoRandom();
-});
-
-// Runs away before you can touch it
-document.addEventListener("mousemove", (e) => {
   if (!noReady) return;
-  if (tooClose(e)) superDodge(e);
+  superDodge();
 });
 
 // Extra protection against interaction attempts
-noBtn.addEventListener("mouseenter", (e) => superDodge(e));
+noBtn.addEventListener("mouseenter", (e) => {
+  e.preventDefault();
+  superDodge();
+});
 noBtn.addEventListener("mousedown", (e) => {
   e.preventDefault();
-  superDodge(e);
+  superDodge();
 });
 noBtn.addEventListener("click", (e) => {
   e.preventDefault();
-  superDodge(e);
+  superDodge();
 });
 noBtn.addEventListener(
   "touchstart",
   (e) => {
     e.preventDefault();
-    placeNoRandom();
+    superDodge();
   },
   { passive: false }
 );

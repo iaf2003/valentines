@@ -96,17 +96,17 @@ function splatBurst() {
     setTimeout(() => d.remove(), 800);
   }
 }
-
 /* =========================================================
-   NO BUTTON (UPDATED)
-   - Yes and No appear next to each other
-   - No is positioned inside the .buttons row (absolute)
-   - When cursor approaches, it jumps somewhere else in the row
+   NO BUTTON (CENTERED START, THEN ALWAYS MOVES AFTER FIRST DODGE)
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-const ARM_DISTANCE = 120; // distance in px before NO jumps
-const ATTEMPTS = 80;
+
+const ARM_DISTANCE_FIRST = 90;
+const ARM_DISTANCE_AFTER = 140;
+const ATTEMPTS = 90;
+
+let hasDodged = false;
 
 function dist(ax, ay, bx, by) {
   return Math.hypot(ax - bx, ay - by);
@@ -129,7 +129,6 @@ function pickSpotInsideButtons() {
 
   const PAD = 8;
 
-  // NO moves inside buttons row (px relative to the row)
   const minX = PAD;
   const maxX = area.width - noRect.width - PAD;
   const minY = PAD;
@@ -148,7 +147,6 @@ function pickSpotInsideButtons() {
     const dMouse = dist(cx, cy, lastMouse.x, lastMouse.y);
     const dYes = dist(cx, cy, yesC.x, yesC.y);
 
-    // prefer far from cursor and not too close to YES
     const score = dMouse + dYes * 0.6;
 
     if (score > bestScore) {
@@ -159,18 +157,15 @@ function pickSpotInsideButtons() {
 
   best.x = clamp(best.x, minX, maxX);
   best.y = clamp(best.y, minY, maxY);
-
   return best;
 }
 
 function moveNo() {
   const spot = pickSpotInsideButtons();
-
   noBtn.style.left = `${spot.x}px`;
   noBtn.style.top = `${spot.y}px`;
-
-  // we're using exact pixels now
   noBtn.style.transform = "none";
+  hasDodged = true;
 }
 
 document.addEventListener("mousemove", (e) => {
@@ -179,7 +174,9 @@ document.addEventListener("mousemove", (e) => {
   const r = noBtn.getBoundingClientRect();
   const c = rectCenter(r);
 
-  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) <= ARM_DISTANCE) {
+  const armDistance = hasDodged ? ARM_DISTANCE_AFTER : ARM_DISTANCE_FIRST;
+
+  if (dist(c.x, c.y, lastMouse.x, lastMouse.y) <= armDistance) {
     moveNo();
   }
 });
@@ -199,16 +196,6 @@ noBtn.addEventListener("click", (e) => {
   moveNo();
 });
 
-// On load: place NO neatly on the right side of the buttons row
-window.addEventListener("load", () => {
-  const buttons = document.querySelector(".buttons");
-  const area = buttons.getBoundingClientRect();
-  const noRect = noBtn.getBoundingClientRect();
-
-  noBtn.style.left = `${area.width - noRect.width - 8}px`;
-  noBtn.style.top = `${(area.height - noRect.height) / 2}px`;
-  noBtn.style.transform = "none";
-});
 
 /* ---------------- YES click ---------------- */
 yesBtn.addEventListener("click", () => {

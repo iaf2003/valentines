@@ -7,7 +7,7 @@
   --accent2:#ff77a8;
   --shadow: 0 16px 46px rgba(0,0,0,.14);
   --radius: 18px;
-  --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
 }
 
 *{ box-sizing:border-box; }
@@ -32,6 +32,7 @@ body{
 }
 
 .card{
+  position:relative;
   background:var(--card);
   backdrop-filter: blur(10px);
   border:1px solid rgba(255,255,255,.75);
@@ -39,6 +40,7 @@ body{
   box-shadow:var(--shadow);
   padding:30px 24px 22px;
   text-align:center;
+  overflow:hidden;
 }
 
 .badge{
@@ -52,24 +54,32 @@ body{
 }
 
 h1{
-  margin:10px 0;
+  margin:10px 0 10px;
   font-size: clamp(28px, 3.6vw, 44px);
+  line-height:1.05;
+  letter-spacing:-0.02em;
 }
 
 .subhead{
   margin:0 auto 18px;
-  max-width: 56ch;
+  max-width:56ch;
   opacity:.92;
+  font-size: clamp(14px, 1.7vw, 18px);
 }
 
-.highlight{ color:#c2185b; font-weight:700; }
+.highlight{
+  font-weight:700;
+  color:#c2185b;
+}
 
 .buttons{
   position:relative;
   display:flex;
   justify-content:center;
+  align-items:center;
   gap:14px;
-  margin-top: 10px;
+  margin-top:10px;
+  height:74px;
 }
 
 .btn{
@@ -78,12 +88,16 @@ h1{
   padding:14px 18px;
   font-size:18px;
   border-radius:14px;
-  min-width: 140px;
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  user-select:none;
+  min-width:140px;
 }
+
+.btn:active{ transform: scale(.98); }
 
 .yes{
   background: linear-gradient(135deg, var(--accent), var(--accent2));
-  color:white;
+  color:#fff;
   box-shadow: 0 14px 26px rgba(236, 64, 122, .25);
 }
 
@@ -92,25 +106,148 @@ h1{
   color:#444;
   border:1px solid rgba(0,0,0,.10);
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
-  position:absolute;
 }
 
-.hidden{ display:none; }
+/* placeholder keeps spacing only, but is invisible */
+#noSlot{
+  visibility: hidden;     /* keeps the space, but you can't see it */
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* real NO is a screen runner */
+#noBtn{
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 9999;
+}
+
+.tease{
+  margin-top:14px;
+  font-size:12px;
+  opacity:.72;
+}
 
 .message{
-  margin-top:20px;
+  margin:18px auto 0;
+  padding:16px 14px;
   background:#fff;
-  padding:16px;
   border-radius:16px;
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow: 0 14px 26px rgba(0,0,0,.08);
+  text-align:left;
+  max-width:560px;
 }
 
 .message-title{
   font-size:20px;
   font-weight:800;
   color:#c2185b;
+  margin-bottom:6px;
 }
+
 .message-body{
+  font-size:16px;
+  line-height:1.35;
+}
+
+.mini{
   margin-top:8px;
-  line-height:1.5;
-  opacity:.9;
+  opacity:.78;
+  font-size:13px;
+}
+
+.plan{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px dashed rgba(0,0,0,.15);
+}
+
+.plan-title{
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.plan ul{
+  margin:0;
+  padding-left:18px;
+}
+
+.hidden{ display:none; }
+
+/* typewriter cursor */
+.type::after{
+  content:"";
+  display:inline-block;
+  width:10px;
+  height:1.1em;
+  margin-left:6px;
+  background: rgba(194, 24, 91, .65);
+  animation: blink 1s infinite;
+  vertical-align:-2px;
+}
+
+@keyframes blink{
+  0%,49%{opacity:1}
+  50%,100%{opacity:0}
+}
+
+/* confetti */
+.confetti{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+.confetti span{
+  position:absolute;
+  top:-12px;
+  width:10px;
+  height:14px;
+  border-radius:4px;
+  opacity:.95;
+  animation: fall linear forwards;
+}
+
+@keyframes fall{
+  to{ transform: translateY(110vh) rotate(720deg); }
+}
+
+/* splats */
+.splat{
+  position:absolute;
+  width:14px;
+  height:14px;
+  border-radius:999px;
+  filter: blur(.2px);
+  animation: splat 700ms ease-out forwards;
+}
+
+@keyframes splat{
+  0%{ transform: translate(0,0) scale(.6); opacity:1; }
+  100%{ transform: translate(var(--dx), var(--dy)) scale(1.8); opacity:0; }
+}
+
+/* floaters */
+.bg-floaters{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.6;
+}
+
+.floater{
+  position:absolute;
+  animation: drift 9s linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes drift{
+  0%{ transform: translateY(0); opacity:0; }
+  10%{ opacity:1; }
+  100%{ transform: translateY(-120vh); opacity:0; }
 }

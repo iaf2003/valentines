@@ -1,49 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Will You Be My Valentine?</title>
-  <link rel="stylesheet" href="style.css">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shayira, Be My Valentine?</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-  <div class="container">
-    <h1>Will You Be My Valentine?</h1>
-    <p>Click the button that *actually* says yes 💖</p>
   <div class="bg-floaters" id="floaters" aria-hidden="true"></div>
   <div class="confetti" id="confetti" aria-hidden="true"></div>
 
-    <div class="buttons">
-      <button id="yesBtn">Yes 💘</button>
-      <button id="noBtn">No 🙃</button>
-    </div>
   <main class="container">
     <div class="card">
       <div class="badge">For Shayira 🎨🐱</div>
 
       <h1 id="headline" class="type"></h1>
+
       <p class="subhead">
         You bring color to everything. Will you let me be your Valentine and take you to
         <span class="highlight">Picanha Steakhouse</span>?
       </p>
 
       <div class="buttons">
-        <button id="yesBtn" class="btn yes">Yes 💘</button>
-        <button id="noBtn" class="btn no">No 🙃</button>
+        <button id="yesBtn" class="btn yes" type="button">Yes 💘</button>
+
+        <span id="noSlot" class="btn no slot" aria-hidden="true">No 🙃</span>
+
+        <button id="noBtn" class="btn no" type="button">No 🙃</button>
       </div>
 
-    <div id="message" class="hidden">Yay! You’re my Valentine! 🎉✨</div>
-  </div>
       <div id="message" class="message hidden" role="status" aria-live="polite">
         <div class="message-title">YAYYYY 💖</div>
         <div class="message-body">
           Shayira, you’re my Valentine. Dinner at <b>Picanha Steakhouse</b> is officially on.
           <div class="mini">Also you and cats are both perfect. That’s just science 🐱</div>
         </div>
+
         <div class="plan">
           <div class="plan-title">Date plan</div>
           <ul>
@@ -58,5 +51,6 @@
     </div>
   </main>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
+</html>

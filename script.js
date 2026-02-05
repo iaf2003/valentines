@@ -31,10 +31,10 @@ function seedFloaters() {
     s.className = "floater";
     s.textContent = icons[Math.floor(Math.random() * icons.length)];
     s.style.left = Math.random() * 100 + "vw";
-    s.style.bottom = (-10 - Math.random() * 30) + "vh";
-    s.style.animationDuration = (7 + Math.random() * 7) + "s";
+    s.style.bottom = -10 - Math.random() * 30 + "vh";
+    s.style.animationDuration = 7 + Math.random() * 7 + "s";
     s.style.animationDelay = Math.random() * 6 + "s";
-    s.style.fontSize = (16 + Math.random() * 18) + "px";
+    s.style.fontSize = 16 + Math.random() * 18 + "px";
     floaters.appendChild(s);
   }
 }
@@ -50,10 +50,10 @@ function confettiBurst() {
     const c = document.createElement("span");
     c.style.left = Math.random() * 100 + "vw";
     c.style.background = colors[Math.floor(Math.random() * colors.length)];
-    c.style.animationDuration = (1.8 + Math.random() * 2.4) + "s";
+    c.style.animationDuration = 1.8 + Math.random() * 2.4 + "s";
     c.style.animationDelay = Math.random() * 0.25 + "s";
-    c.style.width = (8 + Math.random() * 8) + "px";
-    c.style.height = (10 + Math.random() * 12) + "px";
+    c.style.width = 8 + Math.random() * 8 + "px";
+    c.style.height = 10 + Math.random() * 12 + "px";
     confetti.appendChild(c);
   }
 
@@ -89,22 +89,24 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON "CAN'T CLICK ME" MODE
-   - Starts next to YES (snaps to #noSlot)
-   - Moves anywhere on screen
-   - Will NOT appear close to cursor
-   - Will NOT appear close to YES
+   NO BUTTON MODE
+   Starts next to YES (snapped to the hidden slot)
+   Only becomes evasive after the cursor gets near it once
+   Then it dodges aggressively and is basically impossible to click
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 let dodges = 0;
 
-// tweak these:
-const PADDING = 16;       // keep away from screen edges
-const SAFE_FROM_CURSOR = 240; // if cursor gets within this px, NO runs
-const MIN_CURSOR_GAP = 320;   // when choosing a new spot, require at least this distance
-const MIN_YES_GAP = 220;      // keep away from YES
-const ATTEMPTS = 160;         // more attempts = smarter placements
+let armed = false;
+let rafLock = false;
+
+const PADDING = 16;
+const ARM_DISTANCE = 120;
+const SAFE_FROM_CURSOR = 260;
+const MIN_CURSOR_GAP = 340;
+const MIN_YES_GAP = 240;
+const ATTEMPTS = 180;
 
 function dist(ax, ay, bx, by) {
   return Math.hypot(ax - bx, ay - by);
@@ -112,6 +114,10 @@ function dist(ax, ay, bx, by) {
 
 function rectCenter(r) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
 }
 
 function snapNoToSlot() {
@@ -149,60 +155,109 @@ function pickSpot() {
       bestScore = score;
     }
 
-    // fallback: if none are perfectly safe, still pick the farthest
     if (!best && score > bestScore) {
       best = { x, y };
       bestScore = score;
     }
   }
 
+  if (!best) return null;
+
+  best.x = clamp(best.x, PADDING, maxX);
+  best.y = clamp(best.y, PADDING, maxY);
+
   return best;
+}
+
+function setNoPosition(x, y) {
+  noBtn.style.left = `${x}px`;
+  noBtn.style.top = `${y}px`;
 }
 
 function runAway() {
   dodges += 1;
 
   const spot = pickSpot();
-  if (spot) {
-    noBtn.style.left = `${spot.x}px`;
-    noBtn.style.top = `${spot.y}px`;
-  }
+  if (spot) setNoPosition(spot.x, spot.y);
 
-  if (dodges === 3) tease.textContent = "Hehe… it’s shy 🙈 try the other one";
-  if (dodges === 6) tease.textContent = `Okay okay ${HER_NAME}… dinner at ${PLAN} is waiting 😌🥩`;
-  if (dodges >= 9) tease.textContent = "No is not an option today 💖";
+  if (dodges === 2) tease.textContent = "Hehe… nope 🙈";
+  if (dodges === 5) tease.textContent = `Okay okay ${HER_NAME}… dinner at ${PLAN} is waiting 😌🥩`;
+  if (dodges >= 8) tease.textContent = "No is not an option today 💖";
 }
 
-// Track cursor and trigger flee when close
+function runAwaySoon() {
+  if (rafLock) return;
+  rafLock = true;
+  requestAnimationFrame(() => {
+    rafLock = false;
+    runAway();
+  });
+}
+
+function armIfClose() {
+  if (armed) return;
+
+  const r = noBtn.getBoundingClientRect();
+  const c = rectCenter(r);
+  const d = dist(c.x, c.y, lastMouse.x, lastMouse.y);
+
+  if (d <= ARM_DISTANCE) {
+    armed = true;
+    runAwaySoon();
+  }
+}
+
 document.addEventListener("mousemove", (e) => {
   lastMouse = { x: e.clientX, y: e.clientY };
+
+  armIfClose();
+  if (!armed) return;
 
   const r = noBtn.getBoundingClientRect();
   const c = rectCenter(r);
 
   if (dist(c.x, c.y, lastMouse.x, lastMouse.y) < SAFE_FROM_CURSOR) {
-    runAway();
+    runAwaySoon();
   }
 });
 
-// Extra protection: if they try to click/tap it anyway, it runs
-noBtn.addEventListener("mouseenter", (e) => { e.preventDefault(); runAway(); });
-noBtn.addEventListener("mousedown", (e) => { e.preventDefault(); runAway(); });
-noBtn.addEventListener("click", (e) => { e.preventDefault(); runAway(); });
-noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); runAway(); }, { passive: false });
+noBtn.addEventListener("mouseenter", (e) => {
+  e.preventDefault();
+  armed = true;
+  runAwaySoon();
+});
+
+noBtn.addEventListener("mousedown", (e) => {
+  e.preventDefault();
+  armed = true;
+  runAwaySoon();
+});
+
+noBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  armed = true;
+  runAwaySoon();
+});
+
+noBtn.addEventListener(
+  "touchstart",
+  (e) => {
+    e.preventDefault();
+    armed = true;
+    runAwaySoon();
+  },
+  { passive: false }
+);
 
 window.addEventListener("load", () => {
   snapNoToSlot();
-  // tiny delay so it positions correctly first, then becomes evasive
-  setTimeout(() => {
-    // if cursor is already near the buttons, make it flee immediately
-    runAway();
-  }, 120);
 });
 
 window.addEventListener("resize", () => {
-  // on resize, just pick a new safe spot
-  setTimeout(runAway, 80);
+  setTimeout(() => {
+    if (!armed) snapNoToSlot();
+    else runAwaySoon();
+  }, 80);
 });
 
 /* ---------------- YES click ---------------- */

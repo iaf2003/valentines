@@ -1,3 +1,8 @@
+body {
+  background: #ffe6eb;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding-top: 60px;
 :root{
   --bg1:#ffe6eb;
   --bg2:#fff3f7;
@@ -10,6 +15,13 @@
   --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
 }
 
+.container {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  max-width: 440px;
+  margin: auto;
 *{ box-sizing:border-box; }
 
 body{
@@ -81,7 +93,6 @@ h1{
   height:74px;
 }
 
-
 .btn{
   border:none;
   cursor:pointer;
@@ -99,11 +110,7 @@ h1{
   color:white;
   box-shadow: 0 14px 26px rgba(236, 64, 122, .25);
   min-width: 140px;
-  position: relative;
-  z-index: 2;
 }
-
-
 
 .no{
   background:#fff;
@@ -111,30 +118,24 @@ h1{
   border:1px solid rgba(0,0,0,.10);
   box-shadow: 0 14px 26px rgba(0,0,0,.08);
   min-width: 140px;
-  position: relative; /* stays in the row by default */
+  position:relative;
 }
 
-/* placeholder is just for layout, never clickable */
-#noSlot{
-  pointer-events: none;
-}
-
-
-#noBtn{
-  position: fixed;
-  z-index: 9999;
-  pointer-events: auto;
-}
-
-
-
-
+h1 {
+  color: #d43855;
 .tease{
   margin-top:14px;
   font-size:12px;
   opacity:.72;
 }
 
+button {
+  padding: 14px 22px;
+  margin: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
 .message{
   margin:18px auto 0;
   padding:16px 14px;
@@ -146,6 +147,9 @@ h1{
   max-width: 560px;
 }
 
+#yesBtn {
+  background: #ec407a;
+  color: white;
 .message-title{
   font-size:20px;
   font-weight:800;
@@ -153,11 +157,19 @@ h1{
   margin-bottom:6px;
 }
 
+#noBtn {
+  background: #9e9e9e;
+  color: white;
 .message-body{
   font-size:16px;
   line-height:1.35;
 }
 
+.hidden {
+  display: none;
+  font-size: 22px;
+  color: #d81b60;
+  margin-top: 20px;
 .mini{
   margin-top:8px;
   opacity:.78;

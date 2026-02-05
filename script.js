@@ -1,33 +1,34 @@
 const noBtn = document.getElementById("noBtn");
 const yesBtn = document.getElementById("yesBtn");
-const noSlot = document.getElementById("noSlot");
-
 const message = document.getElementById("message");
 const tease = document.getElementById("tease");
 const confetti = document.getElementById("confetti");
 const floaters = document.getElementById("floaters");
 const headline = document.getElementById("headline");
 
+// Make NO button dodge on hover
+noBtn.addEventListener("mouseenter", () => {
+  const x = Math.random() * 200 - 100;
+  const y = Math.random() * 100 - 50;
+  noBtn.style.transform = `translate(${x}px, ${y}px)`;
+});
 const HER_NAME = "Shayira";
 const PLAN = "Picanha Steakhouse";
 
 let dodges = 0;
-let noReady = false;
-let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
-// ---------- Typewriter ----------
+// Typewriter headline
 function typewriter(text, speed = 42){
   headline.textContent = "";
   let i = 0;
   const timer = setInterval(() => {
     headline.textContent += text[i];
-    i += 1;
+    i++;
     if(i >= text.length) clearInterval(timer);
   }, speed);
 }
 typewriter(`${HER_NAME}, will you be my Valentine?`);
 
-// ---------- Floaters ----------
 function seedFloaters(){
   const icons = ["💗","💘","💖","💕","🐱","🎨","🖌️","✨"];
   for(let i=0;i<22;i++){
@@ -44,7 +45,7 @@ function seedFloaters(){
 }
 seedFloaters();
 
-// ---------- Confetti ----------
+// Confetti burst
 function confettiBurst(){
   confetti.innerHTML = "";
   const colors = ["#ec407a","#ff77a8","#ffd1e1","#ffffff","#c2185b","#ffe0eb"];
@@ -60,15 +61,14 @@ function confettiBurst(){
     c.style.height = (10 + Math.random()*12) + "px";
     confetti.appendChild(c);
   }
-
   setTimeout(() => (confetti.innerHTML = ""), 4200);
 }
 
-// ---------- Paint splats ----------
+// Paint splat burst around the YES button
 function splatBurst(){
   const rect = yesBtn.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
 
   const colors = ["#ec407a","#ff77a8","#7c4dff","#26c6da","#ffd54f","#66bb6a"];
   const splats = 22;
@@ -76,135 +76,59 @@ function splatBurst(){
   for(let i=0;i<splats;i++){
     const d = document.createElement("div");
     d.className = "splat";
-    d.style.left = cx + "px";
-    d.style.top = cy + "px";
+    d.style.left = centerX + "px";
+    d.style.top = centerY + "px";
     d.style.position = "fixed";
     d.style.background = colors[Math.floor(Math.random()*colors.length)];
-
     const angle = Math.random() * Math.PI * 2;
     const radius = 18 + Math.random()*60;
-
-    d.style.setProperty("--dx", `${Math.cos(angle)*radius}px`);
-    d.style.setProperty("--dy", `${Math.sin(angle)*radius}px`);
-
+    d.style.setProperty("--dx", `${Math.cos(angle) * radius}px`);
+    d.style.setProperty("--dy", `${Math.sin(angle) * radius}px`);
     document.body.appendChild(d);
     setTimeout(() => d.remove(), 800);
   }
 }
 
-// ---------- Ultra dodge logic ----------
-const padding = 18;
-const dodgeRadius = 300;      // distance from cursor
-const yesAvoidRadius = 220;   // distance from YES
-const triesPerDodge = 120;
+// YES shows success
+// Keep NO button inside the buttons area while dodging
+function dodge(){
+  dodges++;
 
-function centerOfRect(r){
-  return { x: r.left + r.width/2, y: r.top + r.height/2 };
-}
-function dist(ax, ay, bx, by){
-  return Math.hypot(ax - bx, ay - by);
-}
+  const area = document.querySelector(".buttons");
+  const areaRect = area.getBoundingClientRect();
 
-function placeNoAt(x, y){
+  const maxX = areaRect.width - noBtn.offsetWidth;
+  const maxY = areaRect.height - noBtn.offsetHeight;
+
+  const x = Math.max(0, Math.random() * maxX);
+  const y = Math.max(0, Math.random() * maxY);
+
+  noBtn.style.position = "absolute";
   noBtn.style.left = `${x}px`;
   noBtn.style.top = `${y}px`;
-}
-
-// snap real NO over placeholder slot
-function snapNoToSlot(){
-  const slotRect = noSlot.getBoundingClientRect();
-  placeNoAt(slotRect.left, slotRect.top);
-}
-
-function randomSpot(noRect){
-  const maxX = window.innerWidth - noRect.width - padding;
-  const maxY = window.innerHeight - noRect.height - padding;
-
-  const x = Math.random() * (maxX - padding) + padding;
-  const y = Math.random() * (maxY - padding) + padding;
-  return { x, y };
-}
-
-function superDodge(){
-  dodges += 1;
-
-  const noRect = noBtn.getBoundingClientRect();
-  const yesRect = yesBtn.getBoundingClientRect();
-  const yesC = centerOfRect(yesRect);
-
-  let best = null;
-  let bestScore = -Infinity;
-
-  for(let i=0;i<triesPerDodge;i++){
-    const spot = randomSpot(noRect);
-
-    const noCX = spot.x + noRect.width/2;
-    const noCY = spot.y + noRect.height/2;
-
-    const dMouse = dist(noCX, noCY, lastMouse.x, lastMouse.y);
-    const dYes = dist(noCX, noCY, yesC.x, yesC.y);
-
-    const safe = (dMouse > dodgeRadius) && (dYes > yesAvoidRadius);
-    const score = dMouse + dYes;
-
-    if(safe && score > bestScore){
-      best = spot;
-      bestScore = score;
-    }
-
-    if(!best && score > bestScore){
-      best = spot;
-      bestScore = score;
-    }
-  }
-
-  if(best) placeNoAt(best.x, best.y);
 
   if(dodges === 3){
     tease.textContent = "Hehe… it’s shy 🙈 try the other one";
-  } else if(dodges === 6){
-    tease.textContent = `Okay okay ${HER_NAME}… dinner at ${PLAN} is waiting 😌🥩`;
-  } else if(dodges >= 9){
-    tease.textContent = "No is not an option today 💖";
+  }
+  if(dodges === 6){
+    tease.textContent = `Okay okay Shayira… dinner at ${PLAN} is waiting 😌🥩`;
+  }
+  if(dodges >= 9){
+    tease.textContent = "I’m not saying it’s impossible to click No… but I am saying it’s unnecessary 💖";
   }
 }
 
-document.addEventListener("mousemove", (e) => {
-  lastMouse = { x: e.clientX, y: e.clientY };
-  if(!noReady) return;
+noBtn.addEventListener("mouseenter", dodge);
+noBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  dodge();
+}, { passive:false });
 
-  const rect = noBtn.getBoundingClientRect();
-  const c = centerOfRect(rect);
-
-  if(dist(c.x, c.y, lastMouse.x, lastMouse.y) < dodgeRadius){
-    superDodge();
-  }
-});
-
-window.addEventListener("load", () => {
-  snapNoToSlot();   // starts next to YES (because slot is next to YES)
-  noReady = true;
-
-  // optional: immediate dodge if cursor is already too close
-  superDodge();
-});
-
-window.addEventListener("resize", () => {
-  if(!noReady) return;
-  snapNoToSlot();
-  superDodge();
-});
-
-noBtn.addEventListener("mouseenter", (e) => { e.preventDefault(); superDodge(); });
-noBtn.addEventListener("mousedown", (e) => { e.preventDefault(); superDodge(); });
-noBtn.addEventListener("click", (e) => { e.preventDefault(); superDodge(); });
-noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); superDodge(); }, { passive:false });
-
-// ---------- YES click ----------
+// YES click
 yesBtn.addEventListener("click", () => {
-  message.classList.remove("hidden");
-  yesBtn.disabled = true;
-  noBtn.disabled = true;
+message.classList.remove("hidden");
+yesBtn.disabled = true;
+noBtn.disabled = true;
 
   tease.textContent = `Reservation vibes for ${PLAN} ✨`;
   splatBurst();

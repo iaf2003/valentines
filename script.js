@@ -1,7 +1,14 @@
 /* =========================================================
    SCRIPT.JS (FULL)
-   NO IS NEVER HIDDEN.
-   It starts next to YES, then runs when you get close.
+   FIXES YOUR EXACT PROBLEM: the NO button is showing up at (0,0)
+   because your CSS is hiding the SLOT but your JS is not reliably
+   positioning NO into the slot before the page paints.
+
+   THIS VERSION:
+   1) leaves NO visible always
+   2) snaps NO into the slot AFTER layout is stable (2 RAFs)
+   3) keeps NO inside the card area (so you actually SEE it)
+   4) then, when you get close, it runs around inside the card
    ========================================================= */
 
 const noBtn = document.getElementById("noBtn");
@@ -95,7 +102,7 @@ function splatBurst() {
 }
 
 /* =========================================================
-   NO BUTTON
+   NO BUTTON (runs inside the CARD so it stays visible)
    ========================================================= */
 
 let lastMouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -103,12 +110,11 @@ let dodges = 0;
 let armed = false;
 let rafLock = false;
 
-const PADDING = 16;
-const ARM_DISTANCE = 140;      // activates when cursor gets this close
-const SAFE_FROM_CURSOR = 260;  // once activated, runs if cursor comes within this radius
-const MIN_CURSOR_GAP = 340;    // new spot must be far from cursor
-const MIN_YES_GAP = 240;       // new spot must be far from YES
-const ATTEMPTS = 180;
+const ARM_DISTANCE = 140;
+const SAFE_FROM_CURSOR = 240;
+const MIN_CURSOR_GAP = 260;
+const MIN_YES_GAP = 180;
+const ATTEMPTS = 200;
 
 function dist(ax, ay, bx, by) {
   return Math.hypot(ax - bx, ay - by);
@@ -122,26 +128,42 @@ function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
+function forceMovableStyles() {
+  // IMPORTANT: keeps it visible and movable even if CSS is cached wrong
+  noBtn.style.position = "fixed";
+  noBtn.style.zIndex = "9999";
+  noBtn.style.display = "inline-flex";
+  noBtn.style.visibility = "visible";
+  noBtn.style.opacity = "1";
+  noBtn.style.pointerEvents = "auto";
+}
+
 function snapNoToSlot() {
   const slotRect = noSlot.getBoundingClientRect();
   noBtn.style.left = `${slotRect.left}px`;
   noBtn.style.top = `${slotRect.top}px`;
 }
 
-function pickSpot() {
+function pickSpotInsideCard() {
+  const card = document.querySelector(".card");
+  const cardRect = card.getBoundingClientRect();
   const noRect = noBtn.getBoundingClientRect();
   const yesRect = yesBtn.getBoundingClientRect();
   const yesC = rectCenter(yesRect);
 
-  const maxX = window.innerWidth - noRect.width - PADDING;
-  const maxY = window.innerHeight - noRect.height - PADDING;
+  // keep NO inside the card with padding
+  const PAD = 14;
+  const minX = cardRect.left + PAD;
+  const minY = cardRect.top + PAD;
+  const maxX = cardRect.right - noRect.width - PAD;
+  const maxY = cardRect.bottom - noRect.height - PAD;
 
   let best = null;
   let bestScore = -Infinity;
 
   for (let i = 0; i < ATTEMPTS; i++) {
-    const x = PADDING + Math.random() * (maxX - PADDING);
-    const y = PADDING + Math.random() * (maxY - PADDING);
+    const x = minX + Math.random() * (maxX - minX);
+    const y = minY + Math.random() * (maxY - minY);
 
     const cx = x + noRect.width / 2;
     const cy = y + noRect.height / 2;
@@ -164,8 +186,8 @@ function pickSpot() {
 
   if (!best) return null;
 
-  best.x = clamp(best.x, PADDING, maxX);
-  best.y = clamp(best.y, PADDING, maxY);
+  best.x = clamp(best.x, minX, maxX);
+  best.y = clamp(best.y, minY, maxY);
 
   return best;
 }
@@ -178,7 +200,7 @@ function setNoPosition(x, y) {
 function runAway() {
   dodges += 1;
 
-  const spot = pickSpot();
+  const spot = pickSpotInsideCard();
   if (spot) setNoPosition(spot.x, spot.y);
 
   if (dodges === 2) tease.textContent = "Hehe… nope 🙈";
@@ -208,12 +230,6 @@ function armIfClose() {
   }
 }
 
-/* Make sure CSS can move it even if style.css didn't load */
-function forceMovableStyles() {
-  noBtn.style.position = "fixed";
-  noBtn.style.zIndex = "9999";
-}
-
 document.addEventListener("mousemove", (e) => {
   lastMouse = { x: e.clientX, y: e.clientY };
 
@@ -228,7 +244,6 @@ document.addEventListener("mousemove", (e) => {
   }
 });
 
-/* if they get on it at all, it runs */
 noBtn.addEventListener("mouseenter", (e) => {
   e.preventDefault();
   armed = true;
@@ -254,23 +269,25 @@ noBtn.addEventListener(
   { passive: false }
 );
 
-/* IMPORTANT: run after layout is ready */
-window.addEventListener("load", () => {
+/* THIS IS THE IMPORTANT PART:
+   Two requestAnimationFrame calls ensures layout is done
+   before we read noSlot's position */
+function initNoPosition() {
   forceMovableStyles();
-  snapNoToSlot();
-});
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      snapNoToSlot();
+    });
+  });
+}
 
-/* if you use a cache, DOMContentLoaded helps too */
-document.addEventListener("DOMContentLoaded", () => {
-  forceMovableStyles();
-  snapNoToSlot();
-});
+window.addEventListener("load", initNoPosition);
+document.addEventListener("DOMContentLoaded", initNoPosition);
 
 window.addEventListener("resize", () => {
   setTimeout(() => {
-    forceMovableStyles();
-    if (!armed) snapNoToSlot();
-    else runAwaySoon();
+    initNoPosition();
+    if (armed) runAwaySoon();
   }, 80);
 });
 

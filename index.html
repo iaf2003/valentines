@@ -2,129 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Slideshow Test</title>
-  <style>
-    .slideshow{
-      margin:18px auto 6px;
-      max-width:560px;
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .slide-frame{
-      width:100%;
-      max-height:320px;
-      overflow:hidden;
-      border-radius:12px;
-      border:1px solid rgba(0,0,0,0.06);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-    }
-    .slide-frame img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .slide-btn{
-      position:absolute;
-      top:50%;
-      transform:translateY(-50%);
-      background:rgba(255,255,255,0.9);
-      border:none;
-      width:40px;
-      height:40px;
-      border-radius:999px;
-      font-size:22px;
-      line-height:0;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);
-    }
-    .slide-btn.prev{ left:8px; }
-    .slide-btn.next{ right:8px; }
-    .slide-dots{
-      margin-top:8px;
-      display:flex;
-      gap:8px;
-      justify-content:center;
-      position:absolute;
-      bottom:-18px;
-    }
-    .slide-dots button{
-      width:8px;
-      height:8px;
-      background:rgba(0,0,0,0.16);
-      border-radius:999px;
-      border:none;
-      padding:0;
-      cursor:pointer;
-    }
-    .slide-dots button.active{ background:#ec407a; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shayira, Be My Valentine?</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <div class="bg-floaters" id="floaters" aria-hidden="true"></div>
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
 
-  <div class="slideshow">
-    <button class="slide-btn prev" id="prevBtn">‹</button>
+  <main class="container">
+    <div class="card">
+      <div class="badge">For Shayira 🎨🐱</div>
 
-    <div class="slide-frame">
-      <img id="slideImage" src="images/photo1.jpg" alt="Slide" />
+      <h1 id="headline" class="type"></h1>
+
+      <p class="subhead">
+        You bring color to everything. Will you let me be your Valentine and take you to
+        <span class="highlight">Picanha Steakhouse</span>?
+      </p>
+
+      <div class="buttons">
+        <button id="yesBtn" class="btn yes" type="button">Yes 💘</button>
+
+        <span id="noSlot" class="btn no slot" aria-hidden="true">No 🙃</span>
+
+        <button id="noBtn" class="btn no" type="button">No 🙃</button>
+      </div>
+
+      <!-- Simple slideshow -->
+      <div class="slideshow" aria-roledescription="carousel">
+        <button class="slide-btn prev" id="prevSlide" aria-label="Previous">‹</button>
+        <div class="slide-frame">
+          <img id="slideImg" src="IMG_1057.jpeg" alt="Valentine image" />
+        </div>
+        <button class="slide-btn next" id="nextSlide" aria-label="Next">›</button>
+        <div class="slide-dots" id="slideDots" aria-hidden="true"></div>
+      </div>
+
+      <div id="message" class="message hidden" role="status" aria-live="polite">
+        <div class="message-title">YAYYYY 💖</div>
+        <div class="message-body">
+          Shayira, you’re my Valentine. Dinner at <b>Picanha Steakhouse</b> is officially on.
+          <div class="mini">Also you and cats are both perfect. That’s just science 🐱</div>
+        </div>
+
+        <div class="plan">
+          <div class="plan-title">Date plan</div>
+          <ul>
+            <li>Picanha Steakhouse 🥩</li>
+            <li>Post dinner walk and a little photo moment 📸</li>
+            <li>At home: cat videos and a mini art date 🎨</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="tease" class="tease">Click the button that actually means yes 💖</div>
     </div>
+  </main>
 
-    <button class="slide-btn next" id="nextBtn">›</button>
-
-    <div class="slide-dots" id="slideDots"></div>
-  </div>
-
-  <script>
-    const images = [
-      "images/photo1.jpg",
-      "images/photo2.jpg",
-      "images/photo3.jpg",
-      "images/photo4.jpg"
-    ];
-
-    let current = 0;
-
-    const img = document.getElementById("slideImage");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const dotsContainer = document.getElementById("slideDots");
-
-    function renderDots() {
-      dotsContainer.innerHTML = "";
-      images.forEach((_, index) => {
-        const dot = document.createElement("button");
-        if (index === current) dot.classList.add("active");
-        dot.addEventListener("click", () => {
-          current = index;
-          updateSlide();
-        });
-        dotsContainer.appendChild(dot);
-      });
-    }
-
-    function updateSlide() {
-      img.src = images[current];
-      renderDots();
-    }
-
-    prevBtn.addEventListener("click", () => {
-      current = (current - 1 + images.length) % images.length;
-      updateSlide();
-    });
-
-    nextBtn.addEventListener("click", () => {
-      current = (current + 1) % images.length;
-      updateSlide();
-    });
-
-    renderDots();
-  </script>
-
+  <script src="script.js"></script>
 </body>
 </html>
